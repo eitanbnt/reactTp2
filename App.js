@@ -42,7 +42,8 @@ export default function App() {
   if (!data) {
     return <Text>Chargement en cours...</Text>;
   }
-  console.log(data2);
+  //console.log(data2.list[0].dt_txt);
+
 
   return (
     <View style={styles.container}>
@@ -53,7 +54,8 @@ export default function App() {
       </View>
 
       <View style={styles.container}>
-
+        <Text>{data2.list[0].dt_txt}</Text>
+        <Text>{data2.list[1].dt_txt}</Text>
       </View>
       <StatusBar style="auto" />
     </View>
