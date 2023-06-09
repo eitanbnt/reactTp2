@@ -6,54 +6,49 @@ import * as Location from 'expo-location';
 
 export default function App() {
   const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [data2, setData2] = useState(null);
-  const [error2, setError2] = useState(null);
-  const [location, setLocation] = useState(null);
+  const [error, setError] = useState(null); 
   const [errorMsg, setErrorMsg] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  const [errorLon, setErrorLong] = useState(null);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+
   const api = '0d3435d470b7ca8074338816578ecb4a';
 
   useEffect(() => {
     fetchToday();
-    fetchForcast();
-    Location();
+    Localisation();
   }, []);
 
   const fetchToday = async () => {
     try {
-      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Lyon&units=metric&lang=fr&appid=${api}`);
-      const json = await response.json();
-      setData(json);
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&lang=fr&appid=${api}`
+      )
+        .then((response) => response.json())
+        .then((json) => {
+          if (json.weather && json.main) {
+            setData(json);
+          }
+        });
     } catch (error) {
       setError(error);
     }
   };
 
-  const fetchForcast = async () => {
-    try {
-      const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=Lyon&appid=${api}&units=metric&lang=fr`);
-      const json = await response.json();
-      setData2(json);
-    } catch (error2) {
-      setError2(error2);
-    }
-  };
-
-  const Location = async () => {
-    try {
+  const Localisation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
         return;
       }
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-    } catch (errorMsg){
-      setErrorMsg(errorMsg);
+
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        setLatitude(String(location.coords.latitude));
+        setLongitude(String(location.coords.longitude));
+      } catch (error) {
+        setErrorMsg("Failed to fetch location");
+      }
     }
-  }
 
   if (error) {
     return <Text>Une erreur s'est produite: {error.message}</Text>;
@@ -63,13 +58,6 @@ export default function App() {
     return <Text>Chargement en cours...</Text>;
   }
 
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-    console.log(text.coord.longitude);
-    setLongitude(location.coord.longitude);
-  }
   //console.log(data2.list[0].dt_txt);
   const weatherIcon = data.weather[0].icon;
   const iconUrl = `http://openweathermap.org/img/w/${weatherIcon}.png`;
@@ -85,8 +73,6 @@ export default function App() {
       </View>
 
       <View style={styles.container}>
-        {/* <Text>{data2.list[0].dt_txt}</Text>
-        <Text>{data2.list[1].dt_txt}</Text> */}
       </View>
       <StatusBar style="auto" />
     </View>
